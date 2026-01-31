@@ -89,7 +89,7 @@ fun MainScreen(viewModel: AppListViewModel = viewModel()) {
                 )
             }
 
-            Divider(modifier = Modifier.padding(horizontal = 16.dp))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             LazyColumn {
                 items(state.apps, key = { it.packageName }) { app ->
