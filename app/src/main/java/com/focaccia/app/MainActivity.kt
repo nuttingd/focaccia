@@ -15,7 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -113,10 +116,14 @@ fun AppRow(app: AppInfo, isBlocked: Boolean, onToggle: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         app.icon?.let { drawable ->
+            val grayscale = ColorMatrix().apply { setToSaturation(0f) }
             Image(
                 bitmap = drawable.toBitmap(48, 48).asImageBitmap(),
                 contentDescription = app.label,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier
+                    .size(40.dp)
+                    .then(if (isBlocked) Modifier.alpha(0.4f) else Modifier),
+                colorFilter = if (isBlocked) ColorFilter.colorMatrix(grayscale) else null
             )
             Spacer(modifier = Modifier.width(12.dp))
         }
