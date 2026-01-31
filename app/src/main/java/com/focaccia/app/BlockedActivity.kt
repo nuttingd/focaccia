@@ -1,5 +1,6 @@
 package com.focaccia.app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,13 +19,16 @@ class BlockedActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BlockedScreen(onGoBack = { finish() })
+            BlockedScreen(onGoBack = { goHome() })
         }
     }
 
-    @Deprecated("Use onBackPressedDispatcher")
-    override fun onBackPressed() {
-        super.onBackPressed()
+    private fun goHome() {
+        val home = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        startActivity(home)
         finish()
     }
 }
