@@ -73,7 +73,23 @@ fun MainScreen(viewModel: AppListViewModel = viewModel()) {
                 Text("Open Accessibility Settings")
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val allSelected = state.apps.isNotEmpty() &&
+                    state.apps.all { it.packageName in state.blockedApps }
+                Text("Select all", style = MaterialTheme.typography.bodyLarge)
+                Checkbox(
+                    checked = allSelected,
+                    onCheckedChange = { viewModel.toggleSelectAll() }
+                )
+            }
+
+            Divider(modifier = Modifier.padding(horizontal = 16.dp))
 
             LazyColumn {
                 items(state.apps, key = { it.packageName }) { app ->

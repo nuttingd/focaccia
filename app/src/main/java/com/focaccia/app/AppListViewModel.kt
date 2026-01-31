@@ -35,8 +35,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         val apps = pm.getInstalledApplications(0)
             .filter { app ->
                 app.packageName in launchablePackages &&
-                app.packageName != context.packageName &&
-                (app.flags and ApplicationInfo.FLAG_SYSTEM) == 0
+                app.packageName != context.packageName
             }
             .map { app ->
                 AppInfo(
@@ -60,6 +59,18 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         if (packageName in current) current.remove(packageName) else current.add(packageName)
         BlockedAppsRepository.setBlockedApps(context, current)
         _uiState.value = _uiState.value.copy(blockedApps = current)
+    }
+
+    fun toggleSelectAll() {
+        val context = getApplication<Application>()
+        val allPackages = _uiState.value.apps.map { it.packageName }.toSet()
+        val newBlocked = if (_uiState.value.blockedApps.containsAll(allPackages)) {
+            emptySet()
+        } else {
+            allPackages
+        }
+        BlockedAppsRepository.setBlockedApps(context, newBlocked)
+        _uiState.value = _uiState.value.copy(blockedApps = newBlocked)
     }
 
     fun setBlockingEnabled(enabled: Boolean) {
