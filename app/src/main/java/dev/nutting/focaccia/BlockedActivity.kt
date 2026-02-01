@@ -30,9 +30,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-enum class BlockedScreenState { BLOCKED, UNLOCK_SUCCESS }
+enum class BlockedScreenState { BLOCKED, UNLOCK_SUCCESS, WRONG_TAG }
 
 class BlockedActivity : ComponentActivity() {
 
@@ -49,7 +50,8 @@ class BlockedActivity : ComponentActivity() {
                 showNfcHint = hasTag,
                 onDebugUnlock = { screenState.value = BlockedScreenState.UNLOCK_SUCCESS },
                 screenState = screenState.value,
-                onAnimationComplete = { unlock() }
+                onAnimationComplete = { unlock() },
+                onShakeComplete = { screenState.value = BlockedScreenState.BLOCKED }
             )
         }
     }
@@ -82,6 +84,8 @@ class BlockedActivity : ComponentActivity() {
 
         if (tagId == registeredId) {
             screenState.value = BlockedScreenState.UNLOCK_SUCCESS
+        } else {
+            screenState.value = BlockedScreenState.WRONG_TAG
         }
     }
 
@@ -108,7 +112,8 @@ fun BlockedScreen(
     showNfcHint: Boolean = false,
     onDebugUnlock: () -> Unit = {},
     screenState: BlockedScreenState = BlockedScreenState.BLOCKED,
-    onAnimationComplete: () -> Unit = {}
+    onAnimationComplete: () -> Unit = {},
+    onShakeComplete: () -> Unit = {}
 ) {
     val textColor = Color(0xFF37474F)
 
@@ -116,6 +121,8 @@ fun BlockedScreen(
     val checkmarkScale = remember { Animatable(0.6f) }
     val contentAlpha = remember { Animatable(1f) }
     val screenAlpha = remember { Animatable(1f) }
+    val shakeOffset = remember { Animatable(0f) }
+    val wrongTagAlpha = remember { Animatable(0f) }
 
     LaunchedEffect(screenState) {
         if (screenState == BlockedScreenState.UNLOCK_SUCCESS) {
@@ -126,6 +133,18 @@ fun BlockedScreen(
             // Phase 2: fade out entire screen
             screenAlpha.animateTo(0f, tween(500))
             onAnimationComplete()
+        } else if (screenState == BlockedScreenState.WRONG_TAG) {
+            // Shake animation
+            launch {
+                wrongTagAlpha.animateTo(1f, tween(150))
+                delay(800)
+                wrongTagAlpha.animateTo(0f, tween(300))
+            }
+            val offsets = listOf(12f, -12f, 8f, -8f, 4f, 0f)
+            for (offset in offsets) {
+                shakeOffset.animateTo(offset, tween(50))
+            }
+            onShakeComplete()
         }
     }
 
@@ -138,7 +157,9 @@ fun BlockedScreen(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.alpha(contentAlpha.value)
+            modifier = Modifier
+                .alpha(contentAlpha.value)
+                .graphicsLayer { translationX = shakeOffset.value }
         ) {
             Image(
                 painter = painterResource(R.mipmap.ic_launcher_foreground),
@@ -169,7 +190,16 @@ fun BlockedScreen(
                     textAlign = TextAlign.Center
                 )
             }
-            Spacer(modifier = Modifier.height(32.dp))
+            // Wrong tag feedback
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Wrong tag",
+                color = Color(0xFFD32F2F),
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.alpha(wrongTagAlpha.value)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
             OutlinedButton(onClick = onGoBack) {
                 Text("Go Back")
             }
