@@ -7,6 +7,7 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.core.content.ContextCompat
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -72,7 +73,7 @@ class BlockedActivity : ComponentActivity() {
     private fun unlock() {
         val until = System.currentTimeMillis() + BlockedAppsRepository.UNLOCK_DURATION_MS
         BlockedAppsRepository.setBlockingDisabledUntil(this, until)
-        startService(Intent(this, UnlockCountdownService::class.java))
+        ContextCompat.startForegroundService(this, Intent(this, UnlockCountdownService::class.java))
         finish()
     }
 

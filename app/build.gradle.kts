@@ -35,7 +35,7 @@ android {
     }
 
     signingConfigs {
-        if (listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { it != null }) {
+        if (listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { !it.isNullOrBlank() }) {
             create("release") {
                 storeFile = rootProject.file(releaseStoreFile!!)
                 storePassword = releaseStorePassword
@@ -60,6 +60,9 @@ android {
             signingConfig = try {
                 signingConfigs.getByName("release")
             } catch (_: UnknownDomainObjectException) {
+                if (System.getenv("CI") != null) {
+                    throw GradleException("Release signing config missing in CI. Check repository secrets.")
+                }
                 signingConfigs.getByName("debug")
             }
         }

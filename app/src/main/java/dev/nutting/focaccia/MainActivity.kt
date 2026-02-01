@@ -320,9 +320,10 @@ fun AppRow(app: AppInfo, isBlocked: Boolean, onToggle: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         app.icon?.let { drawable ->
+            val bitmap = remember(drawable) { drawable.toBitmap(48, 48).asImageBitmap() }
             val grayscale = ColorMatrix().apply { setToSaturation(0f) }
             Image(
-                bitmap = drawable.toBitmap(48, 48).asImageBitmap(),
+                bitmap = bitmap,
                 contentDescription = app.label,
                 modifier = Modifier
                     .size(40.dp)

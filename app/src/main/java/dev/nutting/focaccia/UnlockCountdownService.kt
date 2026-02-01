@@ -24,6 +24,7 @@ class UnlockCountdownService : Service() {
     }
 
     private val scope = CoroutineScope(Dispatchers.Main + Job())
+    private var countdownJob: Job? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -49,7 +50,8 @@ class UnlockCountdownService : Service() {
 
         startForeground(NOTIFICATION_ID, buildNotification(remaining))
 
-        scope.launch {
+        countdownJob?.cancel()
+        countdownJob = scope.launch {
             while (true) {
                 val left = until - System.currentTimeMillis()
                 if (left <= 0) break

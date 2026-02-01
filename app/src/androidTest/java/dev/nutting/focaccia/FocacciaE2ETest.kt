@@ -48,7 +48,7 @@ class FocacciaE2ETest {
         context.startActivity(intent)
 
         // Wait for BlockedActivity to appear
-        val blockedText = device.wait(Until.findObject(By.text("App Blocked")), TIMEOUT)
+        val blockedText = device.wait(Until.findObject(By.text("Not right now")), TIMEOUT)
         assertNotNull("BlockedActivity should be shown for blocked app", blockedText)
     }
 
@@ -61,7 +61,7 @@ class FocacciaE2ETest {
         context.startActivity(intent)
 
         // "App Blocked" should NOT appear within the timeout window
-        val blockedText = device.wait(Until.findObject(By.text("App Blocked")), TIMEOUT)
+        val blockedText = device.wait(Until.findObject(By.text("Not right now")), TIMEOUT)
         assertNull("BlockedActivity should NOT be shown for unblocked app", blockedText)
     }
 }
