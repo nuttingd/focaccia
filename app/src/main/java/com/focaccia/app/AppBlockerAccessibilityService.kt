@@ -7,15 +7,29 @@ import android.view.accessibility.AccessibilityEvent
 class AppBlockerAccessibilityService : AccessibilityService() {
 
     private var lastBlockedTime = 0L
+    private lateinit var ignoredPackages: Set<String>
 
-    private val ignoredPackages = setOf(
-        "com.focaccia.app",
-        "com.android.systemui",
-        "com.android.launcher",
-        "com.android.launcher3",
-        "com.google.android.apps.nexuslauncher",
-        "com.android.settings"
-    )
+    override fun onCreate() {
+        super.onCreate()
+        val pm = packageManager
+        val ignored = mutableSetOf(
+            "com.focaccia.app",
+            "com.android.systemui",
+            "com.android.settings"
+        )
+
+        val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+        pm.resolveActivity(homeIntent, 0)?.activityInfo?.packageName?.let {
+            ignored.add(it)
+        }
+
+        val dialIntent = Intent(Intent.ACTION_DIAL)
+        pm.resolveActivity(dialIntent, 0)?.activityInfo?.packageName?.let {
+            ignored.add(it)
+        }
+
+        ignoredPackages = ignored
+    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return

@@ -37,10 +37,27 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             .map { it.activityInfo.packageName }
             .toSet()
 
+        val excludedPackages = mutableSetOf(context.packageName)
+
+        // Default launcher
+        val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+        pm.resolveActivity(homeIntent, 0)?.activityInfo?.packageName?.let {
+            excludedPackages.add(it)
+        }
+
+        // Default phone/dialer
+        val dialIntent = Intent(Intent.ACTION_DIAL)
+        pm.resolveActivity(dialIntent, 0)?.activityInfo?.packageName?.let {
+            excludedPackages.add(it)
+        }
+
+        // Settings
+        excludedPackages.add("com.android.settings")
+
         val apps = pm.getInstalledApplications(0)
             .filter { app ->
                 app.packageName in launchablePackages &&
-                app.packageName != context.packageName
+                app.packageName !in excludedPackages
             }
             .map { app ->
                 AppInfo(
