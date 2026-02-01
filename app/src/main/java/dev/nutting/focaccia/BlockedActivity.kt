@@ -9,22 +9,35 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseOutBack
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+
+enum class BlockedScreenState { BLOCKED, UNLOCK_SUCCESS }
 
 class BlockedActivity : ComponentActivity() {
 
     private var nfcAdapter: NfcAdapter? = null
+    private val screenState = mutableStateOf(BlockedScreenState.BLOCKED)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +47,9 @@ class BlockedActivity : ComponentActivity() {
             BlockedScreen(
                 onGoBack = { goHome() },
                 showNfcHint = hasTag,
-                onDebugUnlock = { unlock() }
+                onDebugUnlock = { screenState.value = BlockedScreenState.UNLOCK_SUCCESS },
+                screenState = screenState.value,
+                onAnimationComplete = { unlock() }
             )
         }
     }
@@ -66,7 +81,7 @@ class BlockedActivity : ComponentActivity() {
         val registeredId = BlockedAppsRepository.getRegisteredTagId(this)
 
         if (tagId == registeredId) {
-            unlock()
+            screenState.value = BlockedScreenState.UNLOCK_SUCCESS
         }
     }
 
@@ -91,17 +106,40 @@ class BlockedActivity : ComponentActivity() {
 fun BlockedScreen(
     onGoBack: () -> Unit,
     showNfcHint: Boolean = false,
-    onDebugUnlock: () -> Unit = {}
+    onDebugUnlock: () -> Unit = {},
+    screenState: BlockedScreenState = BlockedScreenState.BLOCKED,
+    onAnimationComplete: () -> Unit = {}
 ) {
     val textColor = Color(0xFF37474F)
+
+    val checkmarkAlpha = remember { Animatable(0f) }
+    val checkmarkScale = remember { Animatable(0.6f) }
+    val contentAlpha = remember { Animatable(1f) }
+    val screenAlpha = remember { Animatable(1f) }
+
+    LaunchedEffect(screenState) {
+        if (screenState == BlockedScreenState.UNLOCK_SUCCESS) {
+            // Phase 1: fade out content, pop in checkmark
+            launch { contentAlpha.animateTo(0f, tween(300)) }
+            launch { checkmarkAlpha.animateTo(1f, tween(400)) }
+            checkmarkScale.animateTo(1f, tween(500, easing = EaseOutBack))
+            // Phase 2: fade out entire screen
+            screenAlpha.animateTo(0f, tween(500))
+            onAnimationComplete()
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .graphicsLayer { alpha = screenAlpha.value }
             .background(Color(0xFFF5F5F0)),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.alpha(contentAlpha.value)
+        ) {
             Image(
                 painter = painterResource(R.mipmap.ic_launcher_foreground),
                 contentDescription = null,
@@ -142,5 +180,15 @@ fun BlockedScreen(
                 }
             }
         }
+
+        // Checkmark overlay
+        Image(
+            painter = painterResource(R.drawable.ic_check_circle),
+            contentDescription = "Unlocked",
+            modifier = Modifier
+                .size(96.dp)
+                .alpha(checkmarkAlpha.value)
+                .scale(checkmarkScale.value)
+        )
     }
 }
