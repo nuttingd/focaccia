@@ -55,7 +55,7 @@ class UnlockCountdownService : Service() {
                 if (left <= 0) break
                 val manager = getSystemService(NotificationManager::class.java)
                 manager.notify(NOTIFICATION_ID, buildNotification(left))
-                delay(1000)
+                delay(15_000)
             }
             stopSelf()
         }
@@ -81,10 +81,8 @@ class UnlockCountdownService : Service() {
     }
 
     private fun buildNotification(remainingMs: Long): Notification {
-        val totalSeconds = (remainingMs / 1000).coerceAtLeast(0)
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        val timeText = "%d:%02d".format(minutes, seconds)
+        val minutes = ((remainingMs / 1000).coerceAtLeast(0) + 59) / 60
+        val timeText = if (minutes == 1L) "1 minute" else "$minutes minutes"
 
         val openIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP

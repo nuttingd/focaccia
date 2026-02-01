@@ -41,7 +41,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         if (now - lastBlockedTime < 1000) return
 
         if (!BlockedAppsRepository.isBlockingEnabled(this)) return
-        if (System.currentTimeMillis() < BlockedAppsRepository.getBlockingDisabledUntil(this)) return
+        if (now < BlockedAppsRepository.getBlockingDisabledUntil(this)) return
         if (packageName !in BlockedAppsRepository.getBlockedApps(this)) return
 
         lastBlockedTime = now

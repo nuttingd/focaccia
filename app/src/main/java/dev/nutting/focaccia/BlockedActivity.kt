@@ -70,7 +70,7 @@ class BlockedActivity : ComponentActivity() {
     }
 
     private fun unlock() {
-        val until = System.currentTimeMillis() + 30 * 60 * 1000L
+        val until = System.currentTimeMillis() + BlockedAppsRepository.UNLOCK_DURATION_MS
         BlockedAppsRepository.setBlockingDisabledUntil(this, until)
         startService(Intent(this, UnlockCountdownService::class.java))
         finish()

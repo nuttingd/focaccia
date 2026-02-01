@@ -8,6 +8,7 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import org.junit.Assert.*
+import org.junit.Assume.assumeNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,11 +43,8 @@ class FocacciaE2ETest {
     fun blockedApp_showsBlockedScreen() {
         // Launch a blocked app
         val intent = context.packageManager.getLaunchIntentForPackage(BLOCKED_PACKAGE)
-        if (intent == null) {
-            // If Calculator isn't installed, skip gracefully
-            return
-        }
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        assumeNotNull("$BLOCKED_PACKAGE not installed – skipping", intent)
+        intent!!.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
 
         // Wait for BlockedActivity to appear
@@ -61,10 +59,9 @@ class FocacciaE2ETest {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(intent)
-        Thread.sleep(2000)
 
-        // "App Blocked" should NOT appear
-        val blockedText = device.findObject(By.text("App Blocked"))
+        // "App Blocked" should NOT appear within the timeout window
+        val blockedText = device.wait(Until.findObject(By.text("App Blocked")), TIMEOUT)
         assertNull("BlockedActivity should NOT be shown for unblocked app", blockedText)
     }
 }

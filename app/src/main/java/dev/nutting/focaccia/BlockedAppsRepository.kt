@@ -9,6 +9,7 @@ object BlockedAppsRepository {
     private const val KEY_BLOCKING_ENABLED = "blocking_enabled"
     private const val KEY_NFC_TAG_ID = "nfc_tag_id"
     private const val KEY_BLOCKING_DISABLED_UNTIL = "blocking_disabled_until"
+    const val UNLOCK_DURATION_MS = 30 * 60 * 1000L
 
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

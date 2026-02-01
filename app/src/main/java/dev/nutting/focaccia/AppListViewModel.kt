@@ -155,7 +155,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
     fun unlockBlocking() {
         val context = getApplication<Application>()
-        val until = System.currentTimeMillis() + 30 * 60 * 1000L
+        val until = System.currentTimeMillis() + BlockedAppsRepository.UNLOCK_DURATION_MS
         BlockedAppsRepository.setBlockingDisabledUntil(context, until)
         context.startService(Intent(context, UnlockCountdownService::class.java))
         _uiState.value = _uiState.value.copy(blockingDisabledUntil = until)
