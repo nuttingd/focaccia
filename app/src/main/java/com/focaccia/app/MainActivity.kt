@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -144,27 +145,56 @@ fun MainScreen(viewModel: AppListViewModel = viewModel()) {
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            if (!state.accessibilityEnabled) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            "Accessibility service not enabled",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Focaccia needs the accessibility service to block apps. Enable it in Settings to activate blocking.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                            }
+                        ) {
+                            Text("Open Accessibility Settings")
+                        }
+                    }
+                }
+            }
+
+            val controlsAlpha = if (state.accessibilityEnabled) 1f else 0.5f
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .alpha(controlsAlpha),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text("Blocking enabled", style = MaterialTheme.typography.titleMedium)
                 Switch(
                     checked = state.blockingEnabled,
+                    enabled = state.accessibilityEnabled,
                     onCheckedChange = { viewModel.setBlockingEnabled(it) }
                 )
-            }
-
-            Button(
-                onClick = {
-                    context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                },
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Text("Open Accessibility Settings")
             }
 
             // NFC Tag section

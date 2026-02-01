@@ -2,7 +2,8 @@ package com.focaccia.app
 
 import android.app.Application
 import android.content.Intent
-import android.content.pm.ApplicationInfo
+import android.provider.Settings
+import android.text.TextUtils
 import androidx.lifecycle.AndroidViewModel
 import com.focaccia.app.model.AppInfo
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,8 @@ data class UiState(
     val blockingEnabled: Boolean = false,
     val registeredTagId: String? = null,
     val blockingDisabledUntil: Long = 0L,
-    val isRegistering: Boolean = false
+    val isRegistering: Boolean = false,
+    val accessibilityEnabled: Boolean = false
 )
 
 class AppListViewModel(application: Application) : AndroidViewModel(application) {
@@ -55,7 +57,8 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
             blockingEnabled = BlockedAppsRepository.isBlockingEnabled(context),
             registeredTagId = BlockedAppsRepository.getRegisteredTagId(context),
             blockingDisabledUntil = BlockedAppsRepository.getBlockingDisabledUntil(context),
-            isRegistering = false
+            isRegistering = false,
+            accessibilityEnabled = isAccessibilityServiceEnabled(context)
         )
     }
 
@@ -63,8 +66,19 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         val context = getApplication<Application>()
         _uiState.value = _uiState.value.copy(
             blockingDisabledUntil = BlockedAppsRepository.getBlockingDisabledUntil(context),
-            registeredTagId = BlockedAppsRepository.getRegisteredTagId(context)
+            registeredTagId = BlockedAppsRepository.getRegisteredTagId(context),
+            accessibilityEnabled = isAccessibilityServiceEnabled(context)
         )
+    }
+
+    private fun isAccessibilityServiceEnabled(context: android.content.Context): Boolean {
+        val serviceName = "${context.packageName}/${AppBlockerAccessibilityService::class.java.canonicalName}"
+        val enabledServices = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: return false
+        return TextUtils.SimpleStringSplitter(':').apply { setString(enabledServices) }
+            .any { it.equals(serviceName, ignoreCase = true) }
     }
 
     fun toggleAppBlocked(packageName: String) {
