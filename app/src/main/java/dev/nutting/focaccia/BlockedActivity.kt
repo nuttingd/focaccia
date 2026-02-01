@@ -154,7 +154,7 @@ fun BlockedScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "This app is blocked right now.",
+                text = "This app is currently blocked.",
                 color = textColor.copy(alpha = 0.6f),
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
