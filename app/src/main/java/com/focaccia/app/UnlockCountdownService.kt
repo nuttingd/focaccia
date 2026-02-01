@@ -20,6 +20,7 @@ class UnlockCountdownService : Service() {
     companion object {
         private const val CHANNEL_ID = "unlock_timer"
         private const val NOTIFICATION_ID = 1001
+        const val ACTION_RELOCK = "com.focaccia.app.ACTION_RELOCK"
     }
 
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -32,6 +33,13 @@ class UnlockCountdownService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_RELOCK) {
+            BlockedAppsRepository.setBlockingDisabledUntil(this, 0L)
+            sendBroadcast(Intent(ACTION_RELOCK).setPackage(packageName))
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         val until = BlockedAppsRepository.getBlockingDisabledUntil(this)
         val remaining = until - System.currentTimeMillis()
         if (remaining <= 0) {
@@ -85,6 +93,13 @@ class UnlockCountdownService : Service() {
             this, 0, openIntent, PendingIntent.FLAG_IMMUTABLE
         )
 
+        val relockIntent = Intent(this, UnlockCountdownService::class.java).apply {
+            action = ACTION_RELOCK
+        }
+        val relockPendingIntent = PendingIntent.getService(
+            this, 1, relockIntent, PendingIntent.FLAG_IMMUTABLE
+        )
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
             .setContentTitle("Blocking unlocked")
@@ -93,6 +108,7 @@ class UnlockCountdownService : Service() {
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setContentIntent(pendingIntent)
+            .addAction(android.R.drawable.ic_lock_lock, "Relock", relockPendingIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
     }

@@ -3,6 +3,8 @@ package com.focaccia.app
 import android.Manifest
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.nfc.NfcAdapter
@@ -44,6 +46,11 @@ class MainActivity : ComponentActivity() {
 
     private var nfcAdapter: NfcAdapter? = null
     private var viewModel: AppListViewModel? = null
+    private val relockReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            viewModel?.refreshUnlockState()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +68,11 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         viewModel?.refreshUnlockState()
+        registerReceiver(
+            relockReceiver,
+            IntentFilter(UnlockCountdownService.ACTION_RELOCK),
+            RECEIVER_NOT_EXPORTED
+        )
         nfcAdapter?.let { adapter ->
             val intent = Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
             val pendingIntent = PendingIntent.getActivity(
@@ -73,6 +85,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
+        unregisterReceiver(relockReceiver)
         nfcAdapter?.disableForegroundDispatch(this)
     }
 
