@@ -59,6 +59,14 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         )
     }
 
+    fun refreshUnlockState() {
+        val context = getApplication<Application>()
+        _uiState.value = _uiState.value.copy(
+            blockingDisabledUntil = BlockedAppsRepository.getBlockingDisabledUntil(context),
+            registeredTagId = BlockedAppsRepository.getRegisteredTagId(context)
+        )
+    }
+
     fun toggleAppBlocked(packageName: String) {
         val context = getApplication<Application>()
         val current = _uiState.value.blockedApps.toMutableSet()
