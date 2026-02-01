@@ -27,7 +27,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Decode release keystore
-        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' }}
+        if: env.RELEASE_KEYSTORE_BASE64 != ''
         run: echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > focaccia.jks
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
@@ -35,7 +35,7 @@ jobs:
       - run: npx --yes -p semantic-release@24 -p @semantic-release/exec@6 semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_STORE_FILE: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' && 'focaccia.jks' || '' }}
+          RELEASE_STORE_FILE: focaccia.jks
           RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
