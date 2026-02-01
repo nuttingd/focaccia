@@ -12,7 +12,10 @@ import kotlinx.coroutines.flow.asStateFlow
 data class UiState(
     val apps: List<AppInfo> = emptyList(),
     val blockedApps: Set<String> = emptySet(),
-    val blockingEnabled: Boolean = false
+    val blockingEnabled: Boolean = false,
+    val registeredTagId: String? = null,
+    val blockingDisabledUntil: Long = 0L,
+    val isRegistering: Boolean = false
 )
 
 class AppListViewModel(application: Application) : AndroidViewModel(application) {
@@ -49,7 +52,10 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         _uiState.value = UiState(
             apps = apps,
             blockedApps = BlockedAppsRepository.getBlockedApps(context),
-            blockingEnabled = BlockedAppsRepository.isBlockingEnabled(context)
+            blockingEnabled = BlockedAppsRepository.isBlockingEnabled(context),
+            registeredTagId = BlockedAppsRepository.getRegisteredTagId(context),
+            blockingDisabledUntil = BlockedAppsRepository.getBlockingDisabledUntil(context),
+            isRegistering = false
         )
     }
 
@@ -77,5 +83,42 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         val context = getApplication<Application>()
         BlockedAppsRepository.setBlockingEnabled(context, enabled)
         _uiState.value = _uiState.value.copy(blockingEnabled = enabled)
+    }
+
+    fun startRegistering() {
+        _uiState.value = _uiState.value.copy(isRegistering = true)
+    }
+
+    fun stopRegistering() {
+        _uiState.value = _uiState.value.copy(isRegistering = false)
+    }
+
+    fun registerTag(id: String) {
+        val context = getApplication<Application>()
+        BlockedAppsRepository.setRegisteredTagId(context, id)
+        _uiState.value = _uiState.value.copy(registeredTagId = id, isRegistering = false)
+    }
+
+    fun clearTag() {
+        val context = getApplication<Application>()
+        BlockedAppsRepository.setRegisteredTagId(context, null)
+        BlockedAppsRepository.setBlockingDisabledUntil(context, 0L)
+        context.stopService(Intent(context, UnlockCountdownService::class.java))
+        _uiState.value = _uiState.value.copy(registeredTagId = null, blockingDisabledUntil = 0L)
+    }
+
+    fun relockBlocking() {
+        val context = getApplication<Application>()
+        BlockedAppsRepository.setBlockingDisabledUntil(context, 0L)
+        context.stopService(Intent(context, UnlockCountdownService::class.java))
+        _uiState.value = _uiState.value.copy(blockingDisabledUntil = 0L)
+    }
+
+    fun unlockBlocking() {
+        val context = getApplication<Application>()
+        val until = System.currentTimeMillis() + 30 * 60 * 1000L
+        BlockedAppsRepository.setBlockingDisabledUntil(context, until)
+        context.startService(Intent(context, UnlockCountdownService::class.java))
+        _uiState.value = _uiState.value.copy(blockingDisabledUntil = until)
     }
 }

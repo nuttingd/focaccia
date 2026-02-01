@@ -3,6 +3,13 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 AVD_NAME="focaccia_test"
+SYSTEM_IMAGE="system-images;android-35;google_apis;arm64-v8a"
+
+# Create AVD if it doesn't exist
+if ! emulator -list-avds 2>/dev/null | grep -q "^${AVD_NAME}$"; then
+    echo "==> AVD '$AVD_NAME' not found, creating..."
+    echo "no" | avdmanager create avd -n "$AVD_NAME" -k "$SYSTEM_IMAGE" -d pixel_6
+fi
 
 # Kill any existing emulator
 if adb devices 2>/dev/null | grep -q emulator; then
