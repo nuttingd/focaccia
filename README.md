@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="app/src/main/ic_launcher-playstore.png" width="128" alt="Focaccia icon" />
+</p>
+
 # Focaccia
 
 Android app blocker that uses an accessibility service to intercept app launches.
