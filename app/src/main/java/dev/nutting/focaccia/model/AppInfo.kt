@@ -1,4 +1,4 @@
-package com.focaccia.app.model
+package dev.nutting.focaccia.model
 
 import android.graphics.drawable.Drawable
 

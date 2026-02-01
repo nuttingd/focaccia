@@ -1,4 +1,4 @@
-package com.focaccia.app
+package dev.nutting.focaccia
 
 import android.content.Context
 import android.content.Intent

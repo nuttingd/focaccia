@@ -1,4 +1,4 @@
-package com.focaccia.app
+package dev.nutting.focaccia
 
 import android.app.Application
 

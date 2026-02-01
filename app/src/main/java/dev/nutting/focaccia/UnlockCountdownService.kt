@@ -1,4 +1,4 @@
-package com.focaccia.app
+package dev.nutting.focaccia
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -20,7 +20,7 @@ class UnlockCountdownService : Service() {
     companion object {
         private const val CHANNEL_ID = "unlock_timer"
         private const val NOTIFICATION_ID = 1001
-        const val ACTION_RELOCK = "com.focaccia.app.ACTION_RELOCK"
+        const val ACTION_RELOCK = "dev.nutting.focaccia.ACTION_RELOCK"
     }
 
     private val scope = CoroutineScope(Dispatchers.Main + Job())

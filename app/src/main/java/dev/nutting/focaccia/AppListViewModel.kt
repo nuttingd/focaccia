@@ -1,11 +1,11 @@
-package com.focaccia.app
+package dev.nutting.focaccia
 
 import android.app.Application
 import android.content.Intent
 import android.provider.Settings
 import android.text.TextUtils
 import androidx.lifecycle.AndroidViewModel
-import com.focaccia.app.model.AppInfo
+import dev.nutting.focaccia.model.AppInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

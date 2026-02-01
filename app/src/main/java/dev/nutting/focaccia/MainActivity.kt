@@ -1,4 +1,4 @@
-package com.focaccia.app
+package dev.nutting.focaccia
 
 import android.Manifest
 import android.app.PendingIntent
@@ -40,7 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.focaccia.app.model.AppInfo
+import dev.nutting.focaccia.model.AppInfo
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {

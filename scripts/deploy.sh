@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PACKAGE="com.focaccia.app"
+PACKAGE="dev.nutting.focaccia"
 SERVICE="$PACKAGE/$PACKAGE.AppBlockerAccessibilityService"
 
 echo "==> Building debug APK..."

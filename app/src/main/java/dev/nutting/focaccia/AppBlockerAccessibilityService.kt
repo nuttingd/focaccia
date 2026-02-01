@@ -1,4 +1,4 @@
-package com.focaccia.app
+package dev.nutting.focaccia
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
@@ -13,7 +13,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
         super.onCreate()
         val pm = packageManager
         val ignored = mutableSetOf(
-            "com.focaccia.app",
+            "dev.nutting.focaccia",
             "com.android.systemui",
             "com.android.settings"
         )

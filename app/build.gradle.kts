@@ -1,20 +1,48 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
+}
+
+fun envOrProp(envKey: String, propKey: String): String? =
+    System.getenv(envKey) ?: keystoreProperties.getProperty(propKey)
+
+val releaseStoreFile = envOrProp("RELEASE_STORE_FILE", "storeFile")
+val releaseStorePassword = envOrProp("RELEASE_KEYSTORE_PASSWORD", "storePassword")
+val releaseKeyAlias = envOrProp("RELEASE_KEY_ALIAS", "keyAlias")
+val releaseKeyPassword = envOrProp("RELEASE_KEY_PASSWORD", "keyPassword")
+
 android {
-    namespace = "com.focaccia.app"
+    namespace = "dev.nutting.focaccia"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.focaccia.app"
+        applicationId = "dev.nutting.focaccia"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { it != null }) {
+            create("release") {
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
 
     buildFeatures {
@@ -29,7 +57,11 @@ android {
 
     buildTypes {
         getByName("release") {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = try {
+                signingConfigs.getByName("release")
+            } catch (_: UnknownDomainObjectException) {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
