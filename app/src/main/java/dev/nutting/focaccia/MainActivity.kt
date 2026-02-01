@@ -21,11 +21,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -202,10 +208,12 @@ fun MainScreen(viewModel: AppListViewModel = viewModel()) {
                 registeredTagId = state.registeredTagId,
                 blockingDisabledUntil = state.blockingDisabledUntil,
                 isRegistering = state.isRegistering,
+                justRegistered = state.justRegistered,
                 onRegister = { viewModel.startRegistering() },
                 onCancelRegister = { viewModel.stopRegistering() },
                 onClear = { viewModel.clearTag() },
                 onRelock = { viewModel.relockBlocking() },
+                onRegisteredSeen = { viewModel.clearJustRegistered() },
                 onDebugRegister = { viewModel.registerTag("DEBUG00") },
                 onDebugUnlock = { viewModel.unlockBlocking() }
             )
@@ -246,21 +254,78 @@ fun NfcTagSection(
     registeredTagId: String?,
     blockingDisabledUntil: Long,
     isRegistering: Boolean,
+    justRegistered: Boolean = false,
     onRegister: () -> Unit,
     onCancelRegister: () -> Unit,
     onClear: () -> Unit,
     onRelock: () -> Unit = {},
+    onRegisteredSeen: () -> Unit = {},
     onDebugRegister: () -> Unit = {},
     onDebugUnlock: () -> Unit = {}
 ) {
+    var showClearDialog by remember { mutableStateOf(false) }
+
+    if (showClearDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearDialog = false },
+            title = { Text("Clear NFC tag?") },
+            text = { Text("You'll need to scan a tag again to unlock apps.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showClearDialog = false
+                    onClear()
+                }) {
+                    Text("Clear")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         if (isRegistering) {
-            Text("Scan an NFC tag to register it...", style = MaterialTheme.typography.bodyMedium)
+            val infiniteTransition = rememberInfiniteTransition(label = "nfc-pulse")
+            val pulseAlpha by infiniteTransition.animateFloat(
+                initialValue = 1f,
+                targetValue = 0.3f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(800),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "nfc-pulse-alpha"
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.ic_nfc),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .alpha(pulseAlpha),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Scan an NFC tag to register it...", style = MaterialTheme.typography.bodyMedium)
+            }
             Spacer(modifier = Modifier.height(4.dp))
             OutlinedButton(onClick = onCancelRegister) {
                 Text("Cancel")
             }
         } else if (registeredTagId != null) {
+            if (justRegistered) {
+                Text(
+                    "Tag registered!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                LaunchedEffect(Unit) {
+                    delay(2000L)
+                    onRegisteredSeen()
+                }
+            }
             Text(
                 "NFC tag registered: $registeredTagId",
                 style = MaterialTheme.typography.bodyMedium
@@ -288,7 +353,7 @@ fun NfcTagSection(
             }
 
             Spacer(modifier = Modifier.height(4.dp))
-            OutlinedButton(onClick = onClear) {
+            OutlinedButton(onClick = { showClearDialog = true }) {
                 Text("Clear Tag")
             }
             if (BuildConfig.DEBUG) {

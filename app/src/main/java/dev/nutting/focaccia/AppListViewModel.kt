@@ -9,6 +9,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dev.nutting.focaccia.model.AppInfo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +24,7 @@ data class UiState(
     val registeredTagId: String? = null,
     val blockingDisabledUntil: Long = 0L,
     val isRegistering: Boolean = false,
+    val justRegistered: Boolean = false,
     val accessibilityEnabled: Boolean = false
 )
 
@@ -29,6 +32,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+    private var registerTimeoutJob: Job? = null
 
     init {
         loadApps()
@@ -139,16 +143,29 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
     fun startRegistering() {
         _uiState.update { it.copy(isRegistering = true) }
+        registerTimeoutJob?.cancel()
+        registerTimeoutJob = viewModelScope.launch {
+            delay(60_000L)
+            if (_uiState.value.isRegistering) {
+                _uiState.update { it.copy(isRegistering = false) }
+            }
+        }
     }
 
     fun stopRegistering() {
+        registerTimeoutJob?.cancel()
         _uiState.update { it.copy(isRegistering = false) }
     }
 
     fun registerTag(id: String) {
+        registerTimeoutJob?.cancel()
         val context = getApplication<Application>()
         BlockedAppsRepository.setRegisteredTagId(context, id)
-        _uiState.update { it.copy(registeredTagId = id, isRegistering = false) }
+        _uiState.update { it.copy(registeredTagId = id, isRegistering = false, justRegistered = true) }
+    }
+
+    fun clearJustRegistered() {
+        _uiState.update { it.copy(justRegistered = false) }
     }
 
     fun clearTag() {
