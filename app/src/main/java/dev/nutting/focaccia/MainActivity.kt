@@ -20,6 +20,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import android.net.Uri
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -131,6 +134,11 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(viewModel: AppListViewModel = viewModel()) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    var showAboutDialog by remember { mutableStateOf(false) }
+
+    if (showAboutDialog) {
+        AboutDialog(onDismiss = { showAboutDialog = false })
+    }
 
     Scaffold(
         topBar = {
@@ -142,6 +150,11 @@ fun MainScreen(viewModel: AppListViewModel = viewModel()) {
                         contentDescription = null,
                         modifier = Modifier.size(48.dp)
                     )
+                },
+                actions = {
+                    IconButton(onClick = { showAboutDialog = true }) {
+                        Icon(Icons.Outlined.Info, contentDescription = "About")
+                    }
                 }
             )
         }
@@ -403,4 +416,50 @@ fun AppRow(app: AppInfo, isBlocked: Boolean, onToggle: () -> Unit) {
         }
         Checkbox(checked = isBlocked, onCheckedChange = { onToggle() })
     }
+}
+
+@Composable
+fun AboutDialog(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Image(
+                painter = painterResource(R.mipmap.ic_launcher_foreground),
+                contentDescription = null,
+                modifier = Modifier.size(64.dp)
+            )
+        },
+        title = { Text("Focaccia") },
+        text = {
+            Column {
+                Text(
+                    "Version ${BuildConfig.VERSION_NAME}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "An NFC-powered app blocker for Android.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                TextButton(
+                    onClick = {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nuttingd/focaccia"))
+                        )
+                    },
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text("View on GitHub")
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
+            }
+        }
+    )
 }
