@@ -122,13 +122,18 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun toggleSelectAll() {
+        toggleSelectAll(packages = null)
+    }
+
+    fun toggleSelectAll(packages: Set<String>?) {
         val context = getApplication<Application>()
         _uiState.update { state ->
-            val allPackages = state.apps.map { it.packageName }.toSet()
-            val newBlocked = if (state.blockedApps.containsAll(allPackages)) {
-                emptySet()
+            val targetPackages = packages ?: state.apps.map { it.packageName }.toSet()
+            val allSelected = state.blockedApps.containsAll(targetPackages)
+            val newBlocked = if (allSelected) {
+                state.blockedApps - targetPackages
             } else {
-                allPackages
+                state.blockedApps + targetPackages
             }
             BlockedAppsRepository.setBlockedApps(context, newBlocked)
             state.copy(blockedApps = newBlocked)

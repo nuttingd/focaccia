@@ -22,7 +22,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import android.net.Uri
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -135,6 +137,7 @@ fun MainScreen(viewModel: AppListViewModel = viewModel()) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var showAboutDialog by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
 
     if (showAboutDialog) {
         AboutDialog(onDismiss = { showAboutDialog = false })
@@ -231,6 +234,32 @@ fun MainScreen(viewModel: AppListViewModel = viewModel()) {
                 onDebugUnlock = { viewModel.unlockBlocking() }
             )
 
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                placeholder = { Text("Search apps") },
+                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Icons.Outlined.Clear, contentDescription = "Clear search")
+                        }
+                    }
+                },
+                singleLine = true
+            )
+
+            val filteredApps = remember(state.apps, searchQuery) {
+                if (searchQuery.isBlank()) state.apps
+                else state.apps.filter {
+                    it.label.contains(searchQuery, ignoreCase = true) ||
+                        it.packageName.contains(searchQuery, ignoreCase = true)
+                }
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -238,19 +267,20 @@ fun MainScreen(viewModel: AppListViewModel = viewModel()) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val allSelected = state.apps.isNotEmpty() &&
-                    state.apps.all { it.packageName in state.blockedApps }
+                val filteredPackages = filteredApps.map { it.packageName }.toSet()
+                val allSelected = filteredApps.isNotEmpty() &&
+                    filteredApps.all { it.packageName in state.blockedApps }
                 Text("Select all", style = MaterialTheme.typography.bodyLarge)
                 Checkbox(
                     checked = allSelected,
-                    onCheckedChange = { viewModel.toggleSelectAll() }
+                    onCheckedChange = { viewModel.toggleSelectAll(filteredPackages) }
                 )
             }
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             LazyColumn {
-                items(state.apps, key = { it.packageName }) { app ->
+                items(filteredApps, key = { it.packageName }) { app ->
                     AppRow(
                         app = app,
                         isBlocked = app.packageName in state.blockedApps,
