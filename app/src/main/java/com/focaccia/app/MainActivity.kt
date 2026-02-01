@@ -163,7 +163,7 @@ fun MainScreen(viewModel: AppListViewModel = viewModel()) {
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "Focaccia needs the accessibility service to block apps. Enable it in Settings to activate blocking.",
+                            "Focaccia needs the accessibility service to block apps. Enable it in Settings to activate app blocking.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
@@ -189,7 +189,7 @@ fun MainScreen(viewModel: AppListViewModel = viewModel()) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Blocking enabled", style = MaterialTheme.typography.titleMedium)
+                Text("App blocking", style = MaterialTheme.typography.titleMedium)
                 Switch(
                     checked = state.blockingEnabled,
                     enabled = state.accessibilityEnabled,
@@ -277,13 +277,13 @@ fun NfcTagSection(
             if (remaining > 0) {
                 val minutes = (remaining / 60_000) + 1
                 Text(
-                    "Blocking unlocked for ~$minutes min",
+                    "Apps unblocked for ~$minutes min",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 OutlinedButton(onClick = onRelock) {
-                    Text("Relock")
+                    Text("Reblock")
                 }
             }
 

@@ -92,10 +92,12 @@ fun BlockedScreen(
     showNfcHint: Boolean = false,
     onDebugUnlock: () -> Unit = {}
 ) {
+    val textColor = Color(0xFF37474F)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFB71C1C)),
+            .background(Color(0xFFF5F5F0)),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -106,15 +108,15 @@ fun BlockedScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "App Blocked",
-                color = Color.White,
-                fontSize = 32.sp,
+                text = "Not right now",
+                color = textColor,
+                fontSize = 28.sp,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "This app is currently blocked by Focaccia.",
-                color = Color.White.copy(alpha = 0.8f),
+                text = "This app is blocked right now.",
+                color = textColor.copy(alpha = 0.6f),
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp)
@@ -122,30 +124,19 @@ fun BlockedScreen(
             if (showNfcHint) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Scan your NFC tag to unlock",
-                    color = Color.White.copy(alpha = 0.6f),
+                    text = "Scan your NFC tag to unblock",
+                    color = textColor.copy(alpha = 0.4f),
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center
                 )
             }
             Spacer(modifier = Modifier.height(32.dp))
-            Button(
-                onClick = onGoBack,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color(0xFFB71C1C)
-                )
-            ) {
+            OutlinedButton(onClick = onGoBack) {
                 Text("Go Back")
             }
             if (BuildConfig.DEBUG) {
                 Spacer(modifier = Modifier.height(12.dp))
-                OutlinedButton(
-                    onClick = onDebugUnlock,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.White
-                    )
-                ) {
+                OutlinedButton(onClick = onDebugUnlock) {
                     Text("[Debug] Simulate Tap")
                 }
             }

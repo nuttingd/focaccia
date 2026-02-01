@@ -74,7 +74,7 @@ class UnlockCountdownService : Service() {
             "Unlock Timer",
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = "Shows countdown while blocking is unlocked"
+            description = "Shows countdown while apps are unblocked"
             setShowBadge(false)
         }
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
@@ -102,13 +102,13 @@ class UnlockCountdownService : Service() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
-            .setContentTitle("Blocking unlocked")
+            .setContentTitle("Apps unblocked")
             .setContentText("$timeText remaining")
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setContentIntent(pendingIntent)
-            .addAction(android.R.drawable.ic_lock_lock, "Relock", relockPendingIntent)
+            .addAction(android.R.drawable.ic_lock_lock, "Reblock", relockPendingIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
     }
