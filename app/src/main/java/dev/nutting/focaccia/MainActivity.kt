@@ -17,6 +17,7 @@ import androidx.activity.compose.setContent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -40,7 +41,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -448,6 +451,13 @@ fun AppRow(app: AppInfo, isBlocked: Boolean, onToggle: () -> Unit) {
     }
 }
 
+private data class AboutLibrary(val name: String, val description: String, val url: String)
+
+private val aboutLibraries = listOf(
+    AboutLibrary("Jetpack Compose", "Modern declarative UI toolkit for Android", "https://developer.android.com/compose"),
+    AboutLibrary("Material 3", "Material Design components for Compose", "https://m3.material.io/"),
+)
+
 @Composable
 fun AboutDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
@@ -462,16 +472,16 @@ fun AboutDialog(onDismiss: () -> Unit) {
         },
         title = { Text("Focaccia") },
         text = {
-            Column {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Text(
                     "Version ${BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     "An NFC-powered app blocker for Android.",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 TextButton(
@@ -480,9 +490,41 @@ fun AboutDialog(onDismiss: () -> Unit) {
                             Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nuttingd/focaccia"))
                         )
                     },
-                    contentPadding = PaddingValues(0.dp)
+                    contentPadding = PaddingValues(0.dp),
                 ) {
                     Text("View on GitHub")
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider()
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    "Libraries",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    aboutLibraries.forEach { lib ->
+                        Column(
+                            modifier = Modifier.clickable {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, Uri.parse(lib.url))
+                                )
+                            },
+                        ) {
+                            Text(
+                                lib.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(
+                                lib.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                 }
             }
         },

@@ -17,7 +17,7 @@ Focaccia is an Android app blocker that uses an accessibility service to interce
 bash scripts/deploy.sh           # build, install, enable accessibility service, launch on device
 ```
 
-Requires JDK 17 and Android SDK 35. Min SDK is 28.
+Requires JDK 21 and Android SDK 36. Min SDK is 28.
 
 ## Architecture
 
